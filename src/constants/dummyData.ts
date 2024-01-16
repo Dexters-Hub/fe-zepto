@@ -1,4 +1,4 @@
-// constants/dummyData.ts
+
 const dummyData = [
   {
     id: 1,
