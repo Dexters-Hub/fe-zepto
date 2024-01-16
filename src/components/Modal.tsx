@@ -16,15 +16,15 @@ interface User {
 }
 
 interface ModalProps {
-  maxHeight?: string;
   maxWidth?: string;
+  maxHeight?: string;
   style?: React.CSSProperties;
-  onUserSelect: (userName: string) => void;
-  users: string[];
+  onUserSelect: (userId: number) => void;
+  selectedUserIds: number[];
   searchQuery: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ maxWidth = '300px', maxHeight = '400px', style = {}, onUserSelect, users, searchQuery }) => {
+const Modal: React.FC<ModalProps> = ({ maxWidth = '300px', maxHeight = '400px', style = {}, onUserSelect, selectedUserIds, searchQuery }) => {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
@@ -42,43 +42,20 @@ const Modal: React.FC<ModalProps> = ({ maxWidth = '300px', maxHeight = '400px', 
   }, []);
 
   useEffect(() => {
-    console.log("Search Query:", searchQuery);
-  
+    const currentSearchQuery = searchQuery.trim().toLowerCase();
 
-    const currentSearchQuery = searchQuery;
-  
-    const updateFilteredUsers = () => {
-      if (currentSearchQuery.trim() === '') {
+    const updatedFilteredUsers = allUsers
+      .filter((user) => !selectedUserIds.includes(user.id))
+      .filter((user) =>
+        `${user.name.first} ${user.name.last} ${user.email}`.toLowerCase().includes(currentSearchQuery)
+      );
 
-        setFilteredUsers(allUsers);
-      } else {
-
-        const updatedFilteredUsers = allUsers
-          .filter((user) => !users.includes(`${user.name.first} ${user.name.last} ${user.email}`))
-          .filter((user) =>
-            `${user.name.first} ${user.name.last} ${user.email}`.toLowerCase().includes(currentSearchQuery.toLowerCase())
-          );
-  
-        setFilteredUsers(updatedFilteredUsers);
-      }
-    };
-
-    updateFilteredUsers();
-  
-
-    return () => {
-
-    };
-  }, [allUsers, users, searchQuery]);
-  
-
-  
-
-  console.log("Filtered Users:", filteredUsers);
+    setFilteredUsers(updatedFilteredUsers);
+  }, [allUsers, selectedUserIds, searchQuery]);
 
   return (
     <div
-      className="modal-container"
+      className="modal-container text-xs"
       style={{
         position: 'absolute',
         ...style,
@@ -95,9 +72,7 @@ const Modal: React.FC<ModalProps> = ({ maxWidth = '300px', maxHeight = '400px', 
           <li
             key={user.id}
             className="flex items-center space-x-2 border p-4 cursor-pointer hover:bg-gray-100"
-            onClick={() => {
-              onUserSelect(`${user.name.first} ${user.name.last}`);
-            }}
+            onClick={() => onUserSelect(user.id)}
           >
             <img src={user.picture.thumbnail} alt={`${user.name.first} ${user.name.last}`} className="rounded-full w-12 h-12" />
             <div>
@@ -109,6 +84,8 @@ const Modal: React.FC<ModalProps> = ({ maxWidth = '300px', maxHeight = '400px', 
     </div>
   );
 };
+
+
 
 const escapeRegExp = (text: string) => {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
